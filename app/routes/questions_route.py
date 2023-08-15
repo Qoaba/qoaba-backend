@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 
-from models.questions_model import Question
-from config.database import collection_name
+from app.models.questions_model import Question
+from app.config.database import collection_name
 
-from schemas.questions_schema import questions_serializer, question_serializer
+from app.schemas.questions_schema import questions_serializer, question_serializer
 from bson import ObjectId
 
 question_api_router = APIRouter()
