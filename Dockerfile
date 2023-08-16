@@ -1,14 +1,17 @@
 FROM python:3.11
 
-# set the working directory
+# Set the working directory
 WORKDIR /code
 
-# install dependencies
+# Install dependencies
 COPY ./requirements.txt ./
-RUN pip install --no-cache-dir  -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# copy the src to the folder
+# Copy the src to the folder
 COPY ./app ./app
 
-# start the server
+# Copy the .env file to the image
+COPY .env ./
+
+# Start the server
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
