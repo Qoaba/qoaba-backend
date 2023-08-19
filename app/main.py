@@ -13,3 +13,4 @@ app.add_middleware(
 )
 
 app.include_router(question_api_router)
+app.include_router(auth_api_router)
