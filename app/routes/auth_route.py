@@ -26,8 +26,7 @@ def user_authenticate(user: User, response: Response):
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return "User not authenticated"
     if check_password(user.password, user_db["password"], user_db["salt"]):
-        return user.email
-        # return Response("Authenticated", status=status.HTTP_200_OK)
+        return user_db["username"]
     response.status_code = status.HTTP_401_UNAUTHORIZED
     return "User not authenticated"
 
