@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class User(BaseModel):
-    username: str | None
+    username: str | None = None
     email: str
     password: str
-    salt: str | None
+    salt: str | None = None

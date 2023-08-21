@@ -1,15 +1,15 @@
 
-from fastapi import APIRouter
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from rest_framework import status
+from fastapi import APIRouter, Response, status
 from app.models.user_model import User
 from app.schemas.user_schema import user_serializer
 from app.config.database import user_collection
-
 from app.utils.encryption import encrypt_password, generate_salt, check_password
 
-auth_api_router = APIRouter()
+auth_api_router = APIRouter(
+    prefix="/api/users",
+    tags=["users"],
+    responses={404: {"description": "Not found"}},
+)
 
 '''
 GET
@@ -19,15 +19,17 @@ returns 200 with username.
 
 
 @auth_api_router.get("/")
-def user_authenticate(user: User):
-    user_db = user_serializer(user_collection.find_one({"email": user.email}))
+def user_authenticate(user: User, response: Response):
+    user_db = user_collection.find_one({"email": user.email})
 
     if user_db is None:
-        return Response('Unable to find user', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    if check_password(user.password, user_db.password, user_db.salt):
-        return Response("Authenticated", status=status.HTTP_200_OK)
-    return Response('Wrong username or password', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return "User not authenticated"
+    if check_password(user.password, user_db["password"], user_db["salt"]):
+        return user.email
+        # return Response("Authenticated", status=status.HTTP_200_OK)
+    response.status_code = status.HTTP_401_UNAUTHORIZED
+    return "User not authenticated"
 
 
 '''
@@ -38,14 +40,18 @@ returns 200 with username.
 
 
 @auth_api_router.post("/")
-def user_signup(user: User):
+def user_signup(user: User, response: Response):
     password = user.password
-
+    # Check if user already exists
+    user_in_db = user_collection.find_one({"email": user.email})
+    if user_in_db is not None:
+        response.status_code = status.HTTP_409_CONFLICT
+        return "User already exists"
     # Generate salt
     salt = generate_salt()
     hashed_password = encrypt_password(password, salt)
     user.password = hashed_password
     user.salt = salt
 
-    _id = user_collection.insert_one(dict(user))
-    return user_serializer(user_collection.find({"_id": _id.inserted_id}))
+    user_collection.insert_one(dict(user))
+    return user_collection.find_one({"email": user.email})["email"]

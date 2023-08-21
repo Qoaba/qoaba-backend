@@ -6,7 +6,11 @@ from app.config.database import question_collection
 from app.schemas.questions_schema import questions_serializer, question_serializer
 from bson import ObjectId
 
-question_api_router = APIRouter()
+question_api_router = APIRouter(
+    prefix="/api/questions",
+    tags=["users"],
+    responses={404: {"description": "Not found"}},
+)
 
 # retrieve
 
