@@ -18,7 +18,7 @@ returns 200 with username.
 '''
 
 
-@auth_api_router.get("/")
+@auth_api_router.post("/login")
 def user_authenticate(user: User, response: Response):
     user_db = user_collection.find_one({"email": user.email})
 
