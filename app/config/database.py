@@ -4,7 +4,7 @@ import os
 
 # Calculate path to .env file in the main directory
 dotenv_path = os.path.join(os.path.dirname(
-    os.path.dirname(os.path.dirname(__file__))), '.env.local')
+    os.path.dirname(os.path.dirname(__file__))), '.env')
 
 # Load environment variables from .env file
 load_dotenv(dotenv_path)

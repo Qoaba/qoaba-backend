@@ -25,18 +25,18 @@ def user_authenticate(user: User, response: Response):
     if user_db is None:
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return "User not authenticated"
+    
     if check_password(user.password, user_db["password"], user_db["salt"]):
         return user_db["username"]
-    response.status_code = status.HTTP_401_UNAUTHORIZED
-    return "User not authenticated"
-
+    else:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return "User not authenticated"
 
 '''
 POST
 Pass username and password as GET parameters to register a new applicant user. If successful,
 returns 200 with username.
 '''
-
 
 @auth_api_router.post("/")
 def user_signup(user: User, response: Response):
@@ -46,6 +46,7 @@ def user_signup(user: User, response: Response):
     if user_in_db is not None:
         response.status_code = status.HTTP_409_CONFLICT
         return "User already exists"
+    
     # Generate salt
     salt = generate_salt()
     hashed_password = encrypt_password(password, salt)
