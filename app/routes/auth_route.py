@@ -4,6 +4,7 @@ from app.models.user_model import User
 from app.schemas.user_schema import user_serializer
 from app.config.database import user_collection
 from app.utils.encryption import encrypt_password, generate_salt, check_password
+from app.utils.gravatar import generate_random_avatar_url
 
 auth_api_router = APIRouter(
     prefix="/api/users",
@@ -27,7 +28,11 @@ def user_authenticate(user: User, response: Response):
         return "User not authenticated"
     
     if check_password(user.password, user_db["password"], user_db["salt"]):
-        return user_db["username"]
+        user_data = [
+            user_db["username"],
+            user_db["picture"],
+        ]
+        return user_data
     else:
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return "User not authenticated"
@@ -47,6 +52,9 @@ def user_signup(user: User, response: Response):
         response.status_code = status.HTTP_409_CONFLICT
         return "User already exists"
     
+    # Generate avatar url
+    user.picture = generate_random_avatar_url(user.email)
+
     # Generate salt
     salt = generate_salt()
     hashed_password = encrypt_password(password, salt)
