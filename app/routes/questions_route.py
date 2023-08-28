@@ -14,7 +14,6 @@ question_api_router = APIRouter(
 
 # retrieve
 
-
 @question_api_router.get("/")
 async def get_questions():
     questions = questions_serializer(question_collection.find())
@@ -23,7 +22,8 @@ async def get_questions():
 
 @question_api_router.get("/{id}")
 async def get_question(id: str):
-    return questions_serializer(question_collection.find_one({"_id": ObjectId(id)}))
+    question = questions_serializer(question_collection.find({"_id": ObjectId(id)}))
+    return {"status": "ok", "data": question}
 
 
 # post
