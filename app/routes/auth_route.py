@@ -31,6 +31,7 @@ def user_authenticate(user: User, response: Response):
         user_data = [
             user_db["username"],
             user_db["picture"],
+            user_db["role"]
         ]
         return user_data
     else:
@@ -54,6 +55,9 @@ def user_signup(user: User, response: Response):
     
     # Generate avatar url
     user.picture = generate_random_avatar_url(user.email)
+
+    # Set user role
+    user.role = "user"
 
     # Generate salt
     salt = generate_salt()
