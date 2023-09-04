@@ -61,7 +61,13 @@ async def user_signup(user: User, response: Response):
 
 @auth_api_router.put("/{id}")
 async def user_update(id: str, user: User, response: Response):
+    # Check if a user with the same username already exists
+    user_in_db = user_collection.find_one({"username": user.username})
+    if user_in_db is not None:
+        response.status_code = status.HTTP_409_CONFLICT
+        return "User already exists"
+
     user_collection.find_one_and_update({"_id": ObjectId(id)}, {
     "$set": {"username": user.username}
     })
-    return {"status": "ok"}
+    return "Username updated"
