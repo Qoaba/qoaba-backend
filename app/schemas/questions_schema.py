@@ -8,5 +8,6 @@ def question_serializer(question) -> dict:
         "difficulty": question["difficulty"],
     }
 
+
 def questions_serializer(questions) -> list:
     return [question_serializer(question) for question in questions]

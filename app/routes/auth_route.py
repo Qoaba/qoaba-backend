@@ -12,21 +12,15 @@ auth_api_router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-'''
-GET
-Pass username and password as GET parameters to authenticate a user. If successful,
-returns 200 with username.
-'''
-
 
 @auth_api_router.post("/login")
-def user_authenticate(user: User, response: Response):
+async def user_authenticate(user: User, response: Response):
     user_db = user_collection.find_one({"email": user.email})
 
     if user_db is None:
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return "User not authenticated"
-    
+
     if check_password(user.password, user_db["password"], user_db["salt"]):
         user_data = [
             user_db["username"],
@@ -38,21 +32,16 @@ def user_authenticate(user: User, response: Response):
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return "User not authenticated"
 
-'''
-POST
-Pass username and password as GET parameters to register a new applicant user. If successful,
-returns 200 with username.
-'''
 
 @auth_api_router.post("/")
-def user_signup(user: User, response: Response):
+async def user_signup(user: User, response: Response):
     password = user.password
     # Check if user already exists
     user_in_db = user_collection.find_one({"email": user.email})
     if user_in_db is not None:
         response.status_code = status.HTTP_409_CONFLICT
         return "User already exists"
-    
+
     # Generate avatar url
     user.picture = generate_random_avatar_url(user.email)
 

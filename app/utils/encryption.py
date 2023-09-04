@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import os
 
+
 def generate_salt() -> bytes:
     return os.urandom(32)
 
