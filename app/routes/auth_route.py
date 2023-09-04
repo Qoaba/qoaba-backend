@@ -5,6 +5,7 @@ from app.schemas.user_schema import user_serializer
 from app.config.database import user_collection
 from app.utils.encryption import encrypt_password, generate_salt, check_password
 from app.utils.gravatar import generate_random_avatar_url
+from bson import ObjectId
 
 auth_api_router = APIRouter(
     prefix="/api/users",
@@ -25,7 +26,8 @@ async def user_authenticate(user: User, response: Response):
         user_data = [
             user_db["username"],
             user_db["picture"],
-            user_db["role"]
+            user_db["role"],
+            str(user_db["_id"])
         ]
         return user_data
     else:
@@ -56,3 +58,10 @@ async def user_signup(user: User, response: Response):
 
     user_collection.insert_one(dict(user))
     return user_collection.find_one({"email": user.email})["email"]
+
+@auth_api_router.put("/{id}")
+async def user_update(id: str, user: User, response: Response):
+    user_collection.find_one_and_update({"_id": ObjectId(id)}, {
+    "$set": {"username": user.username}
+    })
+    return {"status": "ok"}
