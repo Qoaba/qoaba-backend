@@ -24,4 +24,5 @@ client = MongoClient(mongo_connection_string)
 db = client.test
 
 question_collection = db["questions_app"]
-user_collection = db["user_accounts"]
+account_collection = db["accounts"]
+user_collection = db["users"]
