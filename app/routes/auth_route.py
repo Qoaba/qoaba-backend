@@ -70,13 +70,13 @@ async def user_signup(account: Account, response: Response):
 
 @auth_api_router.put("/{id}/username")
 async def username_update(id: str, account: Account, response: Response):
-    account_in_db = account_collection.find_one({"username": account.name})
+    account_in_db = account_collection.find_one({"name": account.name})
     if account_in_db is not None:
         response.status_code = status.HTTP_409_CONFLICT
         return "User already exists"
 
-    account_collection.find_one_and_update({"_id": ObjectId(id)}, {
-        "$set": {"username": account.name}
+    account_collection.find_one_and_update({"userId": ObjectId(id)}, {
+        "$set": {"name": account.name}
     })
     return "Username updated"
 
@@ -88,9 +88,9 @@ async def email_update(id: str, account: Account, response: Response):
         response.status_code = status.HTTP_409_CONFLICT
         return "Email already exists"
 
-    account_db = account_collection.find_one({"_id": ObjectId(id)})
+    account_db = account_collection.find_one({"userId": ObjectId(id)})
     if check_password(account.password, account_db["password"], account_db["salt"]):
-        account_collection.find_one_and_update({"_id": ObjectId(id)}, {
+        account_collection.find_one_and_update({"userId": ObjectId(id)}, {
             "$set": {"email": account.email}
         })
         return "Email updated"
@@ -104,12 +104,12 @@ async def password_update(id: str, account: Account, response: Response):
     current_password = account.password.split(" ")[0]
     new_password = account.password.split(" ")[1]
 
-    account_db = account_collection.find_one({"_id": ObjectId(id)})
+    account_db = account_collection.find_one({"userId": ObjectId(id)})
     if check_password(current_password, account_db["password"], account_db["salt"]):
         salt = generate_salt()
         hashed_password = encrypt_password(new_password, salt)
 
-        account_collection.find_one_and_update({"_id": ObjectId(id)}, {
+        account_collection.find_one_and_update({"userId": ObjectId(id)}, {
             "$set": {"password": hashed_password, "salt": salt}
         })
         return "Password updated"
@@ -120,9 +120,10 @@ async def password_update(id: str, account: Account, response: Response):
 
 @auth_api_router.delete("/{id}")
 async def user_delete(id: str, account: Account, response: Response):
-    account_db = account_collection.find_one({"_id": ObjectId(id)})
+    account_db = account_collection.find_one({"userId": ObjectId(id)})
     if check_password(account.password, account_db["password"], account_db["salt"]) and account_db["email"] == account.email:
-        account_collection.find_one_and_delete({"_id": ObjectId(id)})
+        account_collection.find_one_and_delete({"userId": ObjectId(id)})
+        user_collection.find_one_and_delete({"_id": ObjectId(id)})
         return "User deleted"
     else:
         response.status_code = status.HTTP_401_UNAUTHORIZED
