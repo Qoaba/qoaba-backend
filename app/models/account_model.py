@@ -2,9 +2,9 @@ from pydantic import BaseModel
 
 
 class Account(BaseModel):
-    username: str | None = None
+    name: str | None = None
     email: str
-    picture: str | None = None
-    role: str | None = None
     password: str
+    type: str | None = None
     salt: str | None = None
+    userId: str | None = None

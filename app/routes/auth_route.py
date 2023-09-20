@@ -1,8 +1,10 @@
 
 from fastapi import APIRouter, Response, status
 from app.models.account_model import Account
+from app.models.user_model import User
 from app.schemas.user_schema import user_serializer
 from app.config.database import account_collection
+from app.config.database import user_collection
 from app.utils.encryption import encrypt_password, generate_salt, check_password
 from app.utils.gravatar import generate_random_avatar_url
 from bson import ObjectId
@@ -15,21 +17,22 @@ auth_api_router = APIRouter(
 
 
 @auth_api_router.post("/login")
-async def user_authenticate(user: Account, response: Response):
-    user_db = account_collection.find_one({"email": user.email})
-
-    if user_db is None:
+async def user_authenticate(account: Account, response: Response):
+    account_db = account_collection.find_one({"email": account.email})
+    if account_db is None:
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return "User not authenticated"
 
-    if check_password(user.password, user_db["password"], user_db["salt"]):
-        user_data = [
-            user_db["username"],
+    if check_password(account.password, account_db["password"], account_db["salt"]):
+        user_db = user_collection.find_one({"_id": account_db["userId"]})
+        account_data = [
+            account_db["name"],
+            account_db["type"],
             user_db["picture"],
             user_db["role"],
-            str(user_db["_id"]),
+            str(account_db["userId"]),
         ]
-        return user_data
+        return account_data
     else:
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return "User not authenticated"
@@ -38,37 +41,42 @@ async def user_authenticate(user: Account, response: Response):
 @auth_api_router.post("/")
 async def user_signup(account: Account, response: Response):
     password = account.password
-    # Check if user already exists
+
     account_in_db = account_collection.find_one({"email": account.email})
     if account_in_db is not None:
         response.status_code = status.HTTP_409_CONFLICT
         return "User already exists"
 
-    # Generate avatar url
-    account.picture = generate_random_avatar_url(account.email)
+    # User creation
+    user = User()
+    user.email_verified = False
+    user.locale = None
+    user.picture = generate_random_avatar_url(account.email)
+    user.role = "user"
+    user_collection.insert_one(dict(user))
 
-    # Set user role
-    account.role = "user"
-
-    # Generate salt
+    # Account creation
     salt = generate_salt()
     hashed_password = encrypt_password(password, salt)
     account.password = hashed_password
     account.salt = salt
-
+    account.userId = user_collection.find_one(
+        {"picture": user.picture})["_id"]
+    account.type = "credential"
     account_collection.insert_one(dict(account))
+
     return account_collection.find_one({"email": account.email})["email"]
 
 
 @auth_api_router.put("/{id}/username")
 async def username_update(id: str, account: Account, response: Response):
-    account_in_db = account_collection.find_one({"username": account.username})
+    account_in_db = account_collection.find_one({"username": account.name})
     if account_in_db is not None:
         response.status_code = status.HTTP_409_CONFLICT
         return "User already exists"
 
     account_collection.find_one_and_update({"_id": ObjectId(id)}, {
-        "$set": {"username": account.username}
+        "$set": {"username": account.name}
     })
     return "Username updated"
 
