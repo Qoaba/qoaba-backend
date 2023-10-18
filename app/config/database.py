@@ -26,3 +26,4 @@ db = client.test
 question_collection = db["questions_app"]
 account_collection = db["accounts"]
 user_collection = db["users"]
+stats_collection = db["statistics"]

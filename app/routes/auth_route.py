@@ -1,10 +1,9 @@
-
 from fastapi import APIRouter, Response, status
 from app.models.account_model import Account
 from app.models.user_model import User
-from app.schemas.user_schema import user_serializer
 from app.config.database import account_collection
 from app.config.database import user_collection
+from app.config.database import stats_collection
 from app.utils.encryption import encrypt_password, generate_salt, check_password
 from app.utils.gravatar import generate_random_avatar_url
 from bson import ObjectId
@@ -124,6 +123,7 @@ async def user_delete(id: str, account: Account, response: Response):
     if check_password(account.password, account_db["password"], account_db["salt"]) and account_db["email"] == account.email:
         account_collection.find_one_and_delete({"userId": ObjectId(id)})
         user_collection.find_one_and_delete({"_id": ObjectId(id)})
+        stats_collection.find_one_and_delete({"_id": ObjectId(id)})
         return "User deleted"
     else:
         response.status_code = status.HTTP_401_UNAUTHORIZED

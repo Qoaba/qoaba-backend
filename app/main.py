@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.questions_route import question_api_router
 from app.routes.auth_route import auth_api_router
+from app.routes.stats_route import stats_api_router
 
 app = FastAPI()
 
@@ -15,3 +16,4 @@ app.add_middleware(
 
 app.include_router(question_api_router)
 app.include_router(auth_api_router)
+app.include_router(stats_api_router)
